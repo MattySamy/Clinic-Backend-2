@@ -1,0 +1,114 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Doctor {
+  id             Int           @id @default(autoincrement())
+  firstName      String
+  lastName       String
+  email          String        @unique
+  password       String?
+  image          String?
+  phoneNumber    String
+  degree         String
+  experience     String
+  skills         String
+  certifications String
+  Twitter        String?
+  Facebook       String?
+  Instagram      String?
+  Linkedin       String?
+  branchId       Int
+  workdays       Workdays[]
+  branches       Branch?       @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  appointments   Appointment[]
+  token          Token[]
+}
+
+model Patient {
+  id           Int            @id @default(autoincrement())
+  firstName    String
+  lastName     String
+  email        String         @unique
+  password     String?
+  gender       Gender
+  phoneNumber  String
+  image        String?
+  appointments Appointment[]
+  token        tokenPatient[]
+}
+
+model Secretary {
+  id          Int    @id @default(autoincrement())
+  firstName   String
+  lastName    String
+  email       String @unique
+  phoneNumber String
+  branchId    Int
+  branch      Branch @relation(fields: [branchId], references: [id], onDelete: Cascade)
+}
+
+model Branch {
+  id           Int           @id @default(autoincrement())
+  name         String
+  address      String        @unique
+  phoneNumber  String
+  email        String
+  image        String?
+  appointments Appointment[]
+  secretary    Secretary[]
+  doctor       Doctor[]
+}
+
+model Appointment {
+  id        Int      @id @default(autoincrement())
+  patientId Int
+  doctorId  Int
+  branchId  Int
+  day      String?
+  patient   Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  doctor    Doctor   @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  branch    Branch   @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  @@unique([doctorId,patientId,branchId],name:"unique_app")
+}
+
+model Workdays {
+  id        Int      @id @default(autoincrement())
+  day       String     
+  doctorId  Int   
+  doctor    Doctor   @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  state     Status
+  @@unique([day,doctorId],name: "day_ID")
+}
+
+model Token {
+  id        Int       @id @default(autoincrement())
+  userId    Int
+  expiresAt DateTime?
+  user      Doctor    @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model tokenPatient {
+  id        Int       @id @default(autoincrement())
+  userId    Int
+  expiresAt DateTime?
+  user      Patient   @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+enum Gender {
+  male
+  female
+}
+
+enum Status {
+  available
+  unavailable
+}
